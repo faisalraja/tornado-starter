@@ -1,8 +1,7 @@
-webapp2-starter
-==================
+tornado-starter
+===============
 
-This is base on my app-engine-starter but works outside google app engine.
-Also note that I changed main.py to wsgi.py and made the application variable so it works with appfog.
+Same structure as webapp2-starter & app-engine starter but for tornado and heroku
 
 Summary of things::
 
