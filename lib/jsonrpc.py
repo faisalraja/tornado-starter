@@ -60,10 +60,7 @@ class Server(object):
 
         return result
 
-    @gen.coroutine
-    def handle(self, request, response=None, data=None):
-        self.response = response
-
+    async def handle(self, request, data=None):
         if not data:
             try:
                 data = tornado.escape.json_decode(request.body)
@@ -72,12 +69,13 @@ class Server(object):
         # batch calls
         if isinstance(data, list):
             # todo implement async batch
-            batch_result = [self.handle(None, None, d) for d in data]
-            self.response = response
+            batch_result = []
+            for d in data:
+                batch_result.append(await self.handle(None, d))
             return self.result(batch_result)
 
         if data.get('jsonrpc') != '2.0':
-            return self.error(-32600)
+            return self.error(id, -32600)
 
         if 'id' in data:
             id = data['id']
@@ -131,9 +129,9 @@ class Server(object):
         try:
             if inspect.iscoroutinefunction(method):
                 if named_params:
-                    result = yield method(**clean_params)
+                    result = await method(**clean_params)
                 else:
-                    result = yield method(*params)
+                    result = await method(*params)
             else:
                 if named_params:
                     result = method(**clean_params)

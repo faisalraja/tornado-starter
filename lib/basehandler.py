@@ -59,7 +59,7 @@ class RpcHandler(BaseHandler):
 
     async def post(self):
         server = jsonrpc.Server(self)
-        result = await server.handle(self.request, self)
+        result = await server.handle(self.request)
         self.set_header('Content-Type', 'application/json')
         self.write(json.dumps(result))
         self.finish()

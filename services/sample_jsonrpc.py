@@ -7,10 +7,6 @@ from lib.jsonrpc import ServerException, Client
 
 class ApiHandler(RpcHandler):
 
-    def user_id(self):
-
-        return 123
-
     async def wait(self):
         # Async Samples
         await gen.sleep(3)
