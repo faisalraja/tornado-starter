@@ -1,0 +1,4 @@
+peewee
+Jinja2
+python-memcached
+tornado
