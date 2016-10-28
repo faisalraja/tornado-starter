@@ -24,7 +24,7 @@ $('a.batch-btn').click(function(e){
     var batch = [
         {"jsonrpc": '2.0', "method": 'hello', "params": ["world", 2], "id": 5},  // normal request
         {"jsonrpc": '2.0', "method": 'hello'},  // as notification
-        {"jsonrpc": '2.0', "method": 'login', "id": 10},
+        {"jsonrpc": '2.0', "method": 'wait', "id": 10},
         {"jsonrpc": '2.0', "method": 'no_method', "id": 50} // an error
     ];
     var request = JSON.stringify(batch);
