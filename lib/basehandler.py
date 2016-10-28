@@ -1,8 +1,11 @@
+import json
 import logging
 
 import datetime
 import jinja2
 import tornado
+from tornado import gen
+
 import config
 from lib import jsonrpc
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
@@ -49,10 +52,16 @@ class BaseHandler(tornado.web.RequestHandler, JinjaRenderer):
             'year': datetime.datetime.now().year
         })
         self.write(self.render_jinja(template_name, **kwargs))
+        self.finish()
 
 
 class RpcHandler(BaseHandler):
 
-    def post(self):
+    async def post(self):
         server = jsonrpc.Server(self)
-        server.handle(self.request, self)
+        result = await server.handle(self.request, self)
+        self.set_header('Content-Type', 'application/json')
+        self.write(json.dumps(result))
+        self.finish()
+
+

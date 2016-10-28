@@ -1,25 +1,23 @@
 import logging
+from tornado import gen
 from lib.basehandler import RpcHandler
-from lib.jsonrpc import ServerException
-
-ERROR_LOGIN = 'Login Error'
-TYPE_ERROR = 'error'
+from lib.jsonrpc import ServerException, Client
 
 
-# Sample json rpc
 class ApiHandler(RpcHandler):
 
     def user_id(self):
 
         return 123
 
-    def login(self):
-
+    async def login(self):
+        # Async Samples
+        await gen.sleep(3)
         return True
 
-    def logout(self):
-
-        return False
+    async def logout(self):
+        client = Client('http://localhost:8080/rpc')
+        return await client.login()
 
     def is_logged_in(self):
 

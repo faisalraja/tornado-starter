@@ -1,13 +1,18 @@
 import logging
 import mimetypes
 import os
+from tornado import gen
+from tornado.web import asynchronous
 from lib.basehandler import BaseHandler
 
 
 class HomeHandler(BaseHandler):
 
-    def get(self):
+    async def get(self):
         params = {}
+
+        if self.get_arguments('test'):
+            await gen.sleep(5)
         return self.render_template('main/index.html', **params)
 
 

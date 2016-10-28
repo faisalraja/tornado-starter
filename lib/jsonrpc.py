@@ -4,8 +4,9 @@ import traceback
 import uuid
 from urllib.request import Request, urlopen
 import sys
-
 import tornado
+from tornado import gen
+from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 
 __author__ = 'faisal'
 
@@ -56,14 +57,10 @@ class Server(object):
         return self.result({'jsonrpc': VERSION, 'error': error_value, 'id': id})
 
     def result(self, result):
-        if self.response is None:
-            return result
-        else:
-            if hasattr(self.response, 'set_header'):
-                self.response.set_header('Content-Type', 'application/json')
-            if hasattr(self.response, 'write'):
-                self.response.write(json.dumps(result))
 
+        return result
+
+    @gen.coroutine
     def handle(self, request, response=None, data=None):
         self.response = response
 
@@ -132,10 +129,16 @@ class Server(object):
         if invalid_params:
             return self.error(id, -32602)
         try:
-            if named_params:
-                result = method(**clean_params)
+            if inspect.iscoroutinefunction(method):
+                if named_params:
+                    result = yield method(**clean_params)
+                else:
+                    result = yield method(*params)
             else:
-                result = method(*params)
+                if named_params:
+                    result = method(**clean_params)
+                else:
+                    result = method(*params)
         except ServerException as e:
             return self.error(id, e.code, e.message, e.data)
         except:
@@ -149,7 +152,9 @@ class Server(object):
 
 class Client(object):
 
-    def __init__(self, uri, headers={}):
+    def __init__(self, uri, headers=None):
+        if headers is None:
+            headers = {}
         self.uri = uri
         self.headers = headers
 
@@ -173,7 +178,7 @@ class Client(object):
         self.method = key
         return self.default
 
-    def request(self):
+    async def request(self):
         parameters = {
             'id': str(uuid.uuid4()),
             'method': self.method,
@@ -185,12 +190,12 @@ class Client(object):
         headers = {
             "Content-Type": "application/json"
         }
-        headers = dict(headers.items() + self.headers.items())
-        req = Request(self.uri, data, headers)
-
-        response = urlopen(req).read()
+        headers.update(self.headers.items())
+        req = HTTPRequest(self.uri, method='POST', headers=headers, body=data)
+        http_client = AsyncHTTPClient()
+        response = await http_client.fetch(req)
         try:
-            result = json.loads(response)
+            result = tornado.escape.json_decode(response.body)
         except:
             return None
 
