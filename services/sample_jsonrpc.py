@@ -1,5 +1,7 @@
 import logging
 from tornado import gen
+
+import config
 from lib.basehandler import RpcHandler
 from lib.jsonrpc import ServerException, Client
 
@@ -16,7 +18,7 @@ class ApiHandler(RpcHandler):
         return True
 
     async def logout(self):
-        client = Client('http://localhost:8080/rpc')
+        client = Client('http://localhost:8080/rpc' if config.is_local else 'https://tornadostarter.herokuapp.com/rpc')
         return await client.login()
 
     def is_logged_in(self):
