@@ -1,10 +1,17 @@
 import os
 import memcache as mc
 
-memcache = mc.Client(['127.0.0.1:11211'], debug=True)
-
 # env
 is_local = os.environ.get('PYCHARM_HOSTED') == '1'
+
+# memcache
+mc_servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1:11211')
+if '127.0.0.1' not in mc_servers:
+    mc_servers = '{}:{}@{}'.format(os.environ.get('MEMCACHIER_USERNAME'),
+                                   os.environ.get('MEMCACHIER_PASSWORD'),
+                                   mc_servers)
+
+memcache = mc.Client([mc_servers], debug=is_local)
 
 # Generating random hex
 # >>> import os,binascii
@@ -19,8 +26,12 @@ rate_limit = None
 
 
 # database config
-db_connection = os.environ.get(
-    'DATABASE_URL', 'postgres://root:root@localhost:5432/dev').replace('postgres:', 'postgres+pool:')
+db = {
+    'url': os.environ.get(
+        'DATABASE_URL', 'postgres://root:root@localhost:5432/dev').replace('postgres:', 'postgres+pool:'),
+    'max_connections': 20,
+    'stale_timeout': 600
+}
 
 project_name = 'Tornado Starter'
 

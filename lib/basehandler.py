@@ -38,15 +38,6 @@ class BaseHandler(tornado.web.RequestHandler, JinjaRenderer):
 \    """
     executor = ThreadPoolExecutor(max_workers=config.max_workers)
 
-    # def prepare(self):
-    #     print('Connect')
-    #     models.db.connect()
-    #
-    # def on_finish(self):
-    #     print('Close')
-    #     if not models.db.is_closed():
-    #         models.db.close()
-
     def __init__(self, *argc, **argkw):
         super(BaseHandler, self).__init__(*argc, **argkw)
 
