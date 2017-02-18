@@ -104,19 +104,20 @@ class Server(object):
         named_params = not isinstance(params, list)
         invalid_params = False
 
-        if arg_len > 1 and params is None:
+        if arg_len and params is None:
             invalid_params = True
         elif named_params:
             clean_params = {}
-            if arg_len > 1:
+            if arg_len:
                 req_len = arg_len - def_len
                 for i, arg in enumerate(method_info.parameters):
+                    print(i, arg)
                     if arg in params:
                         clean_params[arg] = params[arg]
-                    elif i < req_len:
+                    elif i <= req_len:
                         invalid_params = True
         else:
-            if len(params) + 1 < arg_len - def_len:
+            if len(params) < arg_len - def_len:
                 invalid_params = True
 
         if invalid_params:
@@ -129,9 +130,12 @@ class Server(object):
                     result = await method(*params)
             else:
                 if named_params:
+                    print(clean_params)
                     result = method(**clean_params)
                 else:
                     result = method(*params)
+                if type(result) is tornado.concurrent.Future:
+                    result = await result
         except ServerException as e:
             return self.error(id, e.code, e.message, e.data)
         except:

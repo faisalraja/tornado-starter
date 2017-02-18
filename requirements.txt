@@ -1,4 +1,6 @@
 peewee
 Jinja2
-python-memcached
 tornado
+psycopg2
+python-memcached
+python3-memcached

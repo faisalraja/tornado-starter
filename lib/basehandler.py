@@ -1,14 +1,15 @@
 import json
 import logging
-
 import datetime
-import jinja2
 import tornado
-from tornado import gen
-
+from tornado.concurrent import run_on_executor
+from concurrent.futures import ThreadPoolExecutor
+from tornadoencookie.encookie import EncookieMixin
 import config
 from lib import jsonrpc
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
+
+from models import models
 
 
 class JinjaRenderer:
@@ -19,7 +20,7 @@ class JinjaRenderer:
         template_dirs = []
         if self.settings.get('template_path', ''):
             template_dirs.append(
-                self.settings["template_path"]
+                self.settings['template_path']
             )
 
         env = Environment(loader=FileSystemLoader(template_dirs))
@@ -32,10 +33,21 @@ class JinjaRenderer:
         return content
 
 
-class BaseHandler(tornado.web.RequestHandler, JinjaRenderer):
+class BaseHandler(tornado.web.RequestHandler, JinjaRenderer, EncookieMixin):
     """
         BaseHandler for all requests
-    """
+\    """
+    executor = ThreadPoolExecutor(max_workers=config.max_workers)
+
+    # def prepare(self):
+    #     print('Connect')
+    #     models.db.connect()
+    #
+    # def on_finish(self):
+    #     print('Close')
+    #     if not models.db.is_closed():
+    #         models.db.close()
+
     def __init__(self, *argc, **argkw):
         super(BaseHandler, self).__init__(*argc, **argkw)
 

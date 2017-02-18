@@ -1,20 +1,15 @@
 import os
 import memcache as mc
 
-# memcache client
 memcache = mc.Client(['127.0.0.1:11211'], debug=True)
 
 # env
 is_local = os.environ.get('PYCHARM_HOSTED') == '1'
 
-
 # Generating random hex
 # >>> import os,binascii
 # >>> binascii.b2a_hex(os.urandom(32)).upper()
 cookie_secret = '-- generate a random 64 hexa decimal here per project --'
-
-# Remember that memcache can be evicted
-session_backend = 'mc_session'
 
 
 # Rate limiting settings
@@ -23,7 +18,10 @@ session_backend = 'mc_session'
 rate_limit = None
 
 
-# database config | change to better path
-db = '/tmp/sample.db'
+# database config
+db_connection = os.environ.get(
+    'DATABASE_URL', 'postgres://root:root@localhost:5432/dev').replace('postgres:', 'postgres+pool:')
 
 project_name = 'Tornado Starter'
+
+max_workers = 10
