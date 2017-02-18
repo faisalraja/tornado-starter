@@ -1,17 +1,13 @@
 import os
-import memcache as mc
+import bmemcached
 
 # env
 is_local = os.environ.get('PYCHARM_HOSTED') == '1'
 
 # memcache
-mc_servers = os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1:11211')
-if '127.0.0.1' not in mc_servers:
-    mc_servers = '{}:{}@{}'.format(os.environ.get('MEMCACHIER_USERNAME'),
-                                   os.environ.get('MEMCACHIER_PASSWORD'),
-                                   mc_servers)
-
-memcache = mc.Client([mc_servers], debug=is_local)
+memcache = bmemcached.Client(servers=[os.environ.get('MEMCACHIER_SERVERS', '127.0.0.1:11211')],
+                             username=os.environ.get('MEMCACHIER_USERNAME'),
+                             password=os.environ.get('MEMCACHIER_PASSWORD'))
 
 # Generating random hex
 # >>> import os,binascii

@@ -2,5 +2,4 @@ peewee
 Jinja2
 tornado
 psycopg2
-python-memcached
-python3-memcached
+python-binary-memcached
