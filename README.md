@@ -18,3 +18,7 @@ Summary of things::
 Note that this is just a guideline, following it will just make life things easier when your app grows to hundreds of files.
 
 Demo: https://tornadostarter.herokuapp.com/
+
+## Deploying to Heroku
+
+   https://devcenter.heroku.com/articles/git

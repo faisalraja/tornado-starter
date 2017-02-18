@@ -4,7 +4,6 @@ import datetime
 import tornado
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
-from tornadoencookie.encookie import EncookieMixin
 import config
 from lib import jsonrpc
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
@@ -33,7 +32,7 @@ class JinjaRenderer:
         return content
 
 
-class BaseHandler(tornado.web.RequestHandler, JinjaRenderer, EncookieMixin):
+class BaseHandler(tornado.web.RequestHandler, JinjaRenderer):
     """
         BaseHandler for all requests
 \    """
