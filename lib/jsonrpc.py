@@ -2,10 +2,8 @@ import json, inspect
 import logging
 import traceback
 import uuid
-from urllib.request import Request, urlopen
 import sys
 import tornado
-from tornado import gen
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 
 __author__ = 'faisal'
@@ -92,30 +90,27 @@ class Server(object):
         else:
             params = {}
 
-        if method.startswith('_'):
-            return self.error(id, -32601)
-        try:
+        if method in vars(self.obj.__class__) and not method.startswith('_'):
             method = getattr(self.obj, method)
-        except AttributeError:
+        else:
             return self.error(id, -32601)
 
-        method_info = inspect.getargspec(method)
-        arg_len = len(method_info.args)
-        def_len = 0
-        if method_info.defaults is not None:
-            def_len = len(method_info.defaults)
+        method_info = inspect.signature(method)
+        arg_len = len(method_info.parameters)
+        def_len = len(set(filter(lambda p: p.default is not inspect._empty,
+                                 method_info.parameters.values())))
 
         # Check if params is valid and remove extra params
         named_params = not isinstance(params, list)
         invalid_params = False
+
         if arg_len > 1 and params is None:
             invalid_params = True
         elif named_params:
             clean_params = {}
             if arg_len > 1:
                 req_len = arg_len - def_len
-                for i in range(1, arg_len):
-                    arg = method_info.args[i]
+                for i, arg in enumerate(method_info.parameters):
                     if arg in params:
                         clean_params[arg] = params[arg]
                     elif i < req_len:

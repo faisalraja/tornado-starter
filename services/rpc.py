@@ -23,3 +23,7 @@ class ApiHandler(RpcHandler):
     def sample_error(self):
         # this is good for any types of errors
         raise ServerException('Just a sample error')
+
+    def add(self, a, b):
+
+        return a + b

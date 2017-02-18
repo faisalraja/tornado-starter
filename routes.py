@@ -1,4 +1,4 @@
-from services import sample_jsonrpc
+from services import rpc
 from web import admin, handlers
 
 _routes = [
@@ -7,7 +7,7 @@ _routes = [
     (r'/admin', admin.HomeHandler),
     (r'/login', handlers.LoginHandler),
     (r'/logout', handlers.LoginHandler),
-    (r'/rpc', sample_jsonrpc.ApiHandler)
+    (r'/rpc', rpc.ApiHandler)
 ]
 
 
