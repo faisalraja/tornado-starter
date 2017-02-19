@@ -2,7 +2,7 @@ import logging
 import time
 from tornado import gen
 import config
-from config import memcache
+from config import mc
 from tornado.concurrent import run_on_executor
 import urllib.request
 from lib import utils
@@ -63,9 +63,9 @@ class ApiHandler(RpcHandler):
     def cache_test(self, create):
 
         if create:
-            val = yield self.run_async(memcache.set, 'test', '555', 5)
+            val = yield self.run_async(mc.set, 'test', '555', 5)
         else:
-            val = yield self.run_async(memcache.get, 'test')
+            val = yield self.run_async(mc.get, 'test')
         return val
 
     @gen.coroutine

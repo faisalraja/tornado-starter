@@ -1,3 +1,4 @@
+from tornado.web import url
 from services import rpc
 from web import admin, handlers
 
@@ -6,7 +7,8 @@ _routes = [
     (r'/', handlers.HomeHandler),
     (r'/admin', admin.HomeHandler),
     (r'/login', handlers.LoginHandler),
-    (r'/logout', handlers.LoginHandler),
+    url(r'/login/(google|twitter)', handlers.LoginProviderHandler, name='login-provider'),
+    (r'/logout', handlers.LogoutHandler),
     (r'/rpc', rpc.ApiHandler)
 ]
 

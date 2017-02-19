@@ -60,10 +60,11 @@
 
                 <div class="nav-collapse">
                     <ul class="nav navbar-nav navbar-right">
-                        {% if user_id %}
+                        {% if user %}
+                            <li><a>{{ user.email }}</a></li>
                             <li><a href="/logout">Logout</a></li>
                         {% else %}
-                            <li><a href="/login">Login</a></li>
+                            <li><a href="/login/google">Login</a></li>
                         {% endif %}
                     </ul>
                 </div>
@@ -88,7 +89,7 @@
 
     <div id="footer">
       <div class="container">
-        <p class="text-muted">&copy {{ year }} altlimit.com</p>
+        <p class="text-muted">&copy {{ now.year }} altlimit.com</p>
       </div>
     </div>
 

@@ -1,22 +1,27 @@
 from peewee import *
-import config
-from playhouse.db_url import connect
+from lib.basemodel import BaseModel
 
 
-db = connect(**config.db)
+class User(BaseModel):
+    email = CharField()
+    name = CharField()
+    password = CharField(null=True)
 
+    auth_key = CharField(null=True)
 
-class BaseModel(Model):
+    @classmethod
+    def get_user_by_oauth(cls, result):
+        auth_key = '{}-{}'.format(result.provider.__class__.__name__, result.user.id)
 
-    class Meta:
-        database = db
+        try:
+            user = cls(cls.auth_key == auth_key).get()
+        except DoesNotExist:
+            user = cls(email=result.user.email, name=result.user.name)
+            user.save()
+
+        return user
 
 
 class Post(BaseModel):
     title = CharField()
     content = TextField()
-
-
-db.connect()
-db.create_tables([Post], safe=True)
-db.close()

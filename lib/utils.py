@@ -22,4 +22,4 @@ def get_members_by_parent(module, parent):
 
 def get_queue():
 
-    return Queue(connection=config.redis_conn)
+    return Queue(connection=config.rc)

@@ -2,5 +2,6 @@ peewee
 Jinja2
 tornado
 psycopg2
+Authomatic
 python-binary-memcached
 rq

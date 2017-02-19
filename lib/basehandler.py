@@ -38,8 +38,17 @@ class BaseHandler(web.RequestHandler, JinjaRenderer):
 \    """
     executor = ThreadPoolExecutor(max_workers=config.max_workers)
 
-    def __init__(self, *argc, **argkw):
-        super(BaseHandler, self).__init__(*argc, **argkw)
+    @gen.coroutine
+    def prepare(self):
+        user_id = self.get_secure_cookie('user_id')
+
+        if user_id:
+            self.current_user = yield self.run_async(models.User.get_by_id, user_id)
+
+    @property
+    def path_url(self):
+
+        return '{}://{}{}'.format(self.request.protocol, self.request.host, self.request.path)
 
     def is_ajax(self):
 
@@ -51,7 +60,8 @@ class BaseHandler(web.RequestHandler, JinjaRenderer):
             'static_url': self.settings.get('static_url_prefix', '/static/'),
             'xsrf_token': self.xsrf_token,
             'xsrf_form_html': self.xsrf_form_html,
-            'year': datetime.datetime.now().year
+            'now': datetime.datetime.now(),
+            'user': self.current_user
         })
         self.write(self.render_jinja(template_name, **kwargs))
         self.finish()
