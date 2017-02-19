@@ -9,6 +9,6 @@ listen = ['high', 'default', 'low']
 
 if __name__ == '__main__':
 
-    with Connection(config.redis_conn):
+    with Connection(config.rc):
         worker = Worker(map(Queue, listen))
         worker.work()
