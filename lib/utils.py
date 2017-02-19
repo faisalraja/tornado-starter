@@ -2,19 +2,8 @@ import inspect
 import logging
 import sys
 import os
-from peewee import SqliteDatabase
 import config
-
-
-def get_db():
-    """Get Application Database
-    :return: DB
-    """
-    global DB
-    if DB is None:
-        DB = SqliteDatabase(config.db)
-
-    return DB
+from rq import Queue
 
 
 def get_path(*path):
@@ -29,3 +18,8 @@ def get_members_by_parent(module, parent):
     return dict(member
                 for member in inspect.getmembers(sys.modules[module if type(module) is str else module.__name__],
                                                  lambda c: inspect.isclass(c) and c.__base__ is parent))
+
+
+def get_queue():
+
+    return Queue(connection=config.redis_conn)

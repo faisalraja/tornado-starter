@@ -3,3 +3,4 @@ Jinja2
 tornado
 psycopg2
 python-binary-memcached
+rq

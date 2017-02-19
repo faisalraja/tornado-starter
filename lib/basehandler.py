@@ -1,11 +1,11 @@
 import json
 import logging
 import datetime
-import tornado
+from tornado import web, gen
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 import config
-from lib import jsonrpc
+from lib import jsonrpc, utils
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from models import models
@@ -32,7 +32,7 @@ class JinjaRenderer:
         return content
 
 
-class BaseHandler(tornado.web.RequestHandler, JinjaRenderer):
+class BaseHandler(web.RequestHandler, JinjaRenderer):
     """
         BaseHandler for all requests
 \    """
@@ -55,6 +55,26 @@ class BaseHandler(tornado.web.RequestHandler, JinjaRenderer):
         })
         self.write(self.render_jinja(template_name, **kwargs))
         self.finish()
+
+    @run_on_executor
+    def run_async(self, fn, *args, **kwargs):
+
+        return fn(*args, **kwargs)
+
+    @classmethod
+    @gen.coroutine
+    def background_result(cls, job):
+        while True:
+            yield gen.sleep(0.1)
+            if job.result is not None or job.status == 'failed':
+                break
+        return job.result
+
+    @run_on_executor
+    def run_background(self, fn, *args, **kwargs):
+        q = utils.get_queue()
+        job = q.enqueue(fn, *args, **kwargs)
+        return BaseHandler.background_result(job)
 
 
 class RpcHandler(BaseHandler):

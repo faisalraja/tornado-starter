@@ -111,7 +111,6 @@ class Server(object):
             if arg_len:
                 req_len = arg_len - def_len
                 for i, arg in enumerate(method_info.parameters):
-                    print(i, arg)
                     if arg in params:
                         clean_params[arg] = params[arg]
                     elif i <= req_len:
@@ -130,7 +129,6 @@ class Server(object):
                     result = await method(*params)
             else:
                 if named_params:
-                    print(clean_params)
                     result = method(**clean_params)
                 else:
                     result = method(*params)

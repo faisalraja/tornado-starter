@@ -4,6 +4,8 @@ from tornado import gen
 import config
 from config import memcache
 from tornado.concurrent import run_on_executor
+import urllib.request
+from lib import utils
 from lib.basehandler import RpcHandler
 from lib.jsonrpc import ServerException, Client
 from models import models
@@ -38,32 +40,40 @@ class ApiHandler(RpcHandler):
         time.sleep(n)
         return 'Waited {}'.format(n)
 
-    @run_on_executor
-    def _db(self, create=False):
-        if create:
-            post = models.Post(title='hello', content='world')
-            post.save()
-        else:
-            post = models.Post.select().get()
-        return post
-
-    @run_on_executor
-    def _set_cache(self, key, value, timeout=5):
-        return memcache.set(key, value, timeout)
-
-    @run_on_executor
-    def _get_cache(self, key):
-        return memcache.get(key)
-
     @gen.coroutine
     def post_db(self, create):
-        p = yield self._db(create)
+
+        def post(create=False):
+            if create:
+                post = models.Post(title='hello', content='world')
+                post.save()
+            else:
+                post = models.Post.select().get()
+            return post
+
+        p = yield self.run_async(post, create)
         return p.title
+
+    @classmethod
+    def test_worker(cls, url):
+        with urllib.request.urlopen(url) as resp:
+            return resp.status
 
     @gen.coroutine
     def cache_test(self, create):
+
         if create:
-            val = yield self._set_cache('test', '555')
+            val = yield self.run_async(memcache.set, 'test', '555', 5)
         else:
-            val = yield self._get_cache('test')
+            val = yield self.run_async(memcache.get, 'test')
         return val
+
+    @gen.coroutine
+    def worker_add(self, wait_for_result=False):
+        result = yield self.run_background(ApiHandler.test_worker,
+                                           'http://localhost:8080/?test=1'
+                                           if config.is_local else 'https://tornadostarter.herokuapp.com/?test=1')
+
+        if wait_for_result:
+            result = yield result
+            return result
