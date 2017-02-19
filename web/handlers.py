@@ -7,6 +7,7 @@ from authomatic import Authomatic
 from lib.auth_adapter import TornadoWebAdapter
 from tornado import gen
 from tornado.concurrent import run_on_executor
+from passlib.hash import bcrypt_sha256
 import config
 from lib.basehandler import BaseHandler
 from models import models
@@ -17,10 +18,19 @@ authomatic = Authomatic(config=config.auth, secret=str(uuid.uuid4()), debug=conf
 
 class HomeHandler(BaseHandler):
 
-    async def get(self):
+    @classmethod
+    def test_password_time(cls, n):
+        start = time.time()
+        bcrypt_sha256.using(rounds=n).hash('super password test')
+        logging.debug('Time: {}'.format(time.time() - start))
+
+    @gen.coroutine
+    def get(self):
         params = {}
+        if self.get_argument('pass', None):
+            yield self.run_async(self.test_password_time, int(self.get_argument('pass', 8)))
         if self.get_argument('test', None):
-            await gen.sleep(5)
+            yield gen.sleep(5)
         return self.render_template('main/index.html', **params)
 
 
@@ -31,7 +41,7 @@ class LoginHandler(BaseHandler):
         try:
             user = models.User.select().get()
         except models.DoesNotExist:
-            user = models.User(name='Test', email='Test@email.com')
+            user = models.User.register(name='Test User', email='A@A.A', password='1')
             user.save()
         return user
 

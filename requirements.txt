@@ -3,5 +3,7 @@ Jinja2
 tornado
 psycopg2
 Authomatic
+passlib
 python-binary-memcached
 rq
+bcrypt
