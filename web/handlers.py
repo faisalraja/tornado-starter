@@ -18,17 +18,9 @@ authomatic = Authomatic(config=config.auth, secret=str(uuid.uuid4()), debug=conf
 
 class HomeHandler(BaseHandler):
 
-    @classmethod
-    def test_password_time(cls, n):
-        start = time.time()
-        bcrypt_sha256.using(rounds=n).hash('super password test')
-        logging.debug('Time: {}'.format(time.time() - start))
-
     @gen.coroutine
     def get(self):
         params = {}
-        if self.get_argument('pass', None):
-            yield self.run_async(self.test_password_time, int(self.get_argument('pass', 8)))
         if self.get_argument('test', None):
             yield gen.sleep(5)
         return self.render_template('main/index.html', **params)
@@ -37,18 +29,19 @@ class HomeHandler(BaseHandler):
 class LoginHandler(BaseHandler):
 
     @classmethod
-    def get_or_create_user(cls):
-        try:
-            user = models.User.select().get()
-        except models.DoesNotExist:
+    def login_or_create(cls):
+        user = models.User.get_user_by_login('A@A.A', '1')
+
+        if not user:
             user = models.User.register(name='Test User', email='A@A.A', password='1')
             user.save()
+
         return user
 
     @gen.coroutine
     def get(self):
 
-        user = yield self.run_async(self.get_or_create_user)
+        user = yield self.run_async(self.login_or_create)
         self.set_secure_cookie('user_id', str(user.id))
 
         return self.redirect(self.request.headers.get('Referer', '/'))

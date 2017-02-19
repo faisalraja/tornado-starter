@@ -17,7 +17,7 @@ class User(BaseModel):
         auth_id = '{}-{}'.format(result.provider.__class__.__name__, result.user.id)
 
         try:
-            user = cls(cls.auth_id == auth_id).get()
+            user = cls.get(cls.auth_id == auth_id)
         except DoesNotExist:
             user = cls(auth_id=auth_id,
                        email=result.user.email,
@@ -31,21 +31,30 @@ class User(BaseModel):
         auth_id = kwargs['email'].lower()
 
         try:
-            user = cls(cls.auth_id == auth_id).get()
+            user = cls.get(cls.auth_id == auth_id)
         except DoesNotExist:
             user = cls(auth_id=auth_id,
                        email=auth_id,
                        name=kwargs['name'],
                        password=cls.get_password(kwargs['password']))
             user.save()
-
         return user
+
+    @classmethod
+    def get_user_by_login(cls, email, password):
+        auth_id = email.lower()
+
+        try:
+            user = cls.get(cls.auth_id == auth_id)
+            if user.password and bcrypt_sha256.verify(password, user.password):
+                return user
+        except DoesNotExist:
+            pass
 
     @classmethod
     def get_password(cls, password):
 
         return bcrypt_sha256.using(rounds=config.password_iterations).hash(password)
-
 
 
 class Post(BaseModel):

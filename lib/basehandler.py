@@ -35,7 +35,7 @@ class JinjaRenderer:
 class BaseHandler(web.RequestHandler, JinjaRenderer):
     """
         BaseHandler for all requests
-\    """
+    """
     executor = ThreadPoolExecutor(max_workers=config.max_workers)
 
     @gen.coroutine
@@ -85,6 +85,9 @@ class BaseHandler(web.RequestHandler, JinjaRenderer):
         q = utils.get_queue()
         job = q.enqueue(fn, *args, **kwargs)
         return BaseHandler.background_result(job)
+
+    def data_received(self, chunk):
+        pass
 
 
 class RpcHandler(BaseHandler):

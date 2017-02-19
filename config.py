@@ -43,7 +43,7 @@ db_config = {
 project_name = 'Tornado Starter'
 
 max_workers = 10
-password_iterations = os.getenv('PASSWORD_ITERATIONS', 12)
+password_iterations = int(os.getenv('PASSWORD_ITERATIONS', 13))
 
 # redis client
 rc = redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379'))
