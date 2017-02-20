@@ -11,7 +11,7 @@ from lib.basehandler import BaseHandler
 from models import models
 
 
-authomatic = Authomatic(config=config.auth, secret=str(uuid.uuid4()), debug=config.is_local)
+authomatic = Authomatic(config=config.auth, secret=config.cookie_secret, debug=config.is_local)
 
 
 class HomeHandler(BaseHandler):
