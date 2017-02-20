@@ -82,9 +82,9 @@ class BaseHandler(web.RequestHandler, JinjaRenderer):
         return fn(*args, **kwargs)
 
     @classmethod
-    async def background_result(cls, job):
+    async def deferred_result(cls, job):
         while True:
-            await gen.sleep(0.1)
+            await gen.sleep(0.5)
             if job.result is not None or job.status == 'failed':
                 break
         return job.result
@@ -93,7 +93,7 @@ class BaseHandler(web.RequestHandler, JinjaRenderer):
     def defer(self, fn, *args, **kwargs):
         q = utils.get_queue()
         job = q.enqueue(fn, *args, **kwargs)
-        return BaseHandler.background_result(job)
+        return BaseHandler.deferred_result(job)
 
     def data_received(self, chunk):
         pass
