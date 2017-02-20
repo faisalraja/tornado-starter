@@ -36,7 +36,7 @@ rate_limit = None
 db_config = {
     'url': os.getenv(
         'DATABASE_URL', 'postgres://root:root@localhost:5432/dev').replace('postgres:', 'postgres+pool:'),
-    'max_connections': 20,
+    'max_connections': 5,
     'stale_timeout': 600
 }
 
