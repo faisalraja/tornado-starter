@@ -38,13 +38,16 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
+logging.getLogger().setLevel(logging.DEBUG)
+setup_db()
+
+application = Application()
+
+
 if __name__ == '__main__':
-    setup_db()
     tornado.options.parse_command_line()
     port = os.getenv('PORT', options.port)
     print("Server listening on port " + str(port))
-    logging.getLogger().setLevel(logging.DEBUG)
-    http_server = tornado.httpserver.HTTPServer(Application())
+    http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(int(port))
     tornado.ioloop.IOLoop.instance().start()
-
