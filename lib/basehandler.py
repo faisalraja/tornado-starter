@@ -1,14 +1,24 @@
 import json
 import logging
 import datetime
+from functools import wraps
 from tornado import web, gen
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
+from tornado.platform.asyncio import to_tornado_future
 import config
 from lib import jsonrpc, utils
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
-
 from models import models
+
+
+def tasklet(method):
+    """Runs a function on a new thread and uses RequestHandler.executor"""
+    @wraps(method)
+    async def wrapper(self, *args, **kwargs):
+        fut = self.executor.submit(method, self, *args, **kwargs)
+        return await to_tornado_future(fut)
+    return wrapper
 
 
 class JinjaRenderer:
@@ -66,22 +76,21 @@ class BaseHandler(web.RequestHandler, JinjaRenderer):
         self.write(self.render_jinja(template_name, **kwargs))
         self.finish()
 
-    @run_on_executor
+    @tasklet
     def run_async(self, fn, *args, **kwargs):
 
         return fn(*args, **kwargs)
 
     @classmethod
-    @gen.coroutine
-    def background_result(cls, job):
+    async def background_result(cls, job):
         while True:
-            yield gen.sleep(0.1)
+            await gen.sleep(0.1)
             if job.result is not None or job.status == 'failed':
                 break
         return job.result
 
-    @run_on_executor
-    def run_background(self, fn, *args, **kwargs):
+    @tasklet
+    def defer(self, fn, *args, **kwargs):
         q = utils.get_queue()
         job = q.enqueue(fn, *args, **kwargs)
         return BaseHandler.background_result(job)

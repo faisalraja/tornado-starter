@@ -13,10 +13,9 @@ from models import models
 
 class ApiHandler(RpcHandler):
 
-    @gen.coroutine
-    def wait(self):
+    async def wait(self):
         # Await on any thread
-        r = yield self._wait(3)
+        r = await self.run_async(self._wait, 3)
         return r
 
     async def client_call_wait(self):
@@ -35,13 +34,11 @@ class ApiHandler(RpcHandler):
 
         return a + b
 
-    @run_on_executor
     def _wait(self, n):
         time.sleep(n)
         return 'Waited {}'.format(n)
 
-    @gen.coroutine
-    def post_db(self, create):
+    async def post_db(self, create):
 
         def post(create=False):
             if create:
@@ -51,7 +48,7 @@ class ApiHandler(RpcHandler):
                 post = models.Post.select().get()
             return post
 
-        p = yield self.run_async(post, create)
+        p = await self.run_async(post, create)
         return p.title
 
     @classmethod
@@ -59,21 +56,19 @@ class ApiHandler(RpcHandler):
         with urllib.request.urlopen(url) as resp:
             return resp.status
 
-    @gen.coroutine
-    def cache_test(self, create):
+    async def cache_test(self, create):
 
         if create:
-            val = yield self.run_async(mc.set, 'test', '555', 5)
+            val = await self.run_async(mc.set, 'test', '555', 5)
         else:
-            val = yield self.run_async(mc.get, 'test')
+            val = await self.run_async(mc.get, 'test')
         return val
 
-    @gen.coroutine
-    def worker_add(self, wait_for_result=False):
-        result = yield self.run_background(ApiHandler.test_worker,
-                                           'http://localhost:8080/?test=1'
-                                           if config.is_local else 'https://tornadostarter.herokuapp.com/?test=1')
+    async def worker_add(self, wait_for_result=False):
+        result = await self.defer(ApiHandler.test_worker,
+                                  'http://localhost:8080/?test=1'
+                                  if config.is_local else 'https://tornadostarter.herokuapp.com/?test=1')
 
         if wait_for_result:
-            result = yield result
+            result = await result
             return result

@@ -6,8 +6,6 @@ import uuid
 from authomatic import Authomatic
 from lib.auth_adapter import TornadoWebAdapter
 from tornado import gen
-from tornado.concurrent import run_on_executor
-from passlib.hash import bcrypt_sha256
 import config
 from lib.basehandler import BaseHandler
 from models import models
@@ -18,11 +16,10 @@ authomatic = Authomatic(config=config.auth, secret=str(uuid.uuid4()), debug=conf
 
 class HomeHandler(BaseHandler):
 
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         params = {}
         if self.get_argument('test', None):
-            yield gen.sleep(5)
+            await self.run_async(time.sleep, 3)
         return self.render_template('main/index.html', **params)
 
 
