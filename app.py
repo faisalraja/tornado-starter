@@ -1,3 +1,4 @@
+import os
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -40,9 +41,10 @@ class Application(tornado.web.Application):
 if __name__ == '__main__':
     setup_db()
     tornado.options.parse_command_line()
-    print("Server listening on port " + str(options.port))
+    port = os.getenv('PORT', options.port)
+    print("Server listening on port " + str(port))
     logging.getLogger().setLevel(logging.DEBUG)
     http_server = tornado.httpserver.HTTPServer(Application())
-    http_server.listen(options.port)
+    http_server.listen(int(port))
     tornado.ioloop.IOLoop.instance().start()
 
