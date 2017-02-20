@@ -7,3 +7,4 @@ passlib
 python-binary-memcached
 rq
 bcrypt
+gunicorn
