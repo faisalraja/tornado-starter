@@ -4,14 +4,11 @@ import os
 import time
 import uuid
 from authomatic import Authomatic
-from lib.auth_adapter import TornadoWebAdapter
+from lib.auth.adapter import TornadoWebAdapter
 from tornado import gen
 import config
 from lib.basehandler import BaseHandler
 from models import models
-
-
-authomatic = Authomatic(config=config.auth, secret=config.cookie_secret, debug=config.is_local)
 
 
 class HomeHandler(BaseHandler):
@@ -61,7 +58,7 @@ class LoginProviderHandler(BaseHandler):
                 return self.redirect('/')
 
     def handle(self, provider):
-        authomatic.login(TornadoWebAdapter(self), provider, self.on_login)
+        config.authomatic.login(TornadoWebAdapter(self), provider, self.on_login)
 
     @gen.coroutine
     def get(self, provider):

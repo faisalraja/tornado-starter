@@ -2,15 +2,14 @@ from authomatic.adapters import BaseAdapter
 
 
 class TornadoWebAdapter(BaseAdapter):
-
+    """Authomatic Adapter for Tornado"""
     def __init__(self, handler):
-
         self.request = handler.request
         self.handler = handler
 
     @property
     def url(self):
-        return self.handler.path_url
+        return self.request.full_url().split('?').pop(0)
 
     @property
     def params(self):
@@ -29,4 +28,4 @@ class TornadoWebAdapter(BaseAdapter):
 
     def set_status(self, status):
         status_code, reason = status.split(' ', 1)
-        self.handler.set_status(int(status_code))
+        self.handler.set_status(int(status_code), status)

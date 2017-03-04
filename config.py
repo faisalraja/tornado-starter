@@ -1,8 +1,9 @@
 import os
 import redis
 import bmemcached
+from authomatic import Authomatic
 from playhouse.db_url import connect
-from lib import auth_provider
+from lib.auth import provider
 
 # env
 is_local = os.getenv('PYCHARM_HOSTED') == '1'
@@ -16,7 +17,7 @@ cookie_secret = os.getenv('COOKIE_SECRET', '-- generate a random 64 hexa decimal
 
 auth = {
     'google': {
-        'class_': auth_provider.Google,
+        'class_': provider.Google,
 
         # Provider type specific keyword arguments:
         'short_name': 2,  # use authomatic.short_name() to generate this automatically
@@ -55,3 +56,6 @@ mc = bmemcached.Client(servers=[os.getenv('MEMCACHIER_SERVERS', '127.0.0.1:11211
 
 # db client
 db = connect(**db_config)
+
+# authomatic
+authomatic = Authomatic(config=auth, secret=cookie_secret, debug=is_local)

@@ -48,17 +48,11 @@ class BaseHandler(web.RequestHandler, JinjaRenderer):
     """
     executor = ThreadPoolExecutor(max_workers=config.max_workers)
 
-    @gen.coroutine
-    def prepare(self):
+    async def prepare(self):
         user_id = self.get_secure_cookie('user_id')
 
         if user_id:
-            self.current_user = yield self.run_async(models.User.get_by_id, user_id)
-
-    @property
-    def path_url(self):
-
-        return '{}://{}{}'.format(self.request.protocol, self.request.host, self.request.path)
+            self.current_user = await self.run_async(models.User.get_by_id, user_id)
 
     def is_ajax(self):
 
