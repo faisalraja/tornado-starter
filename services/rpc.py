@@ -8,7 +8,7 @@ import urllib.request
 from lib import utils
 from lib.basehandler import RpcHandler
 from lib.jsonrpc import ServerException, Client
-from models import models
+import models
 
 
 class ApiHandler(RpcHandler):

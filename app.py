@@ -9,9 +9,7 @@ import tornado
 import config
 import routes
 from lib import utils, basemodel
-from models import models
-
-define('port', default='8080', help='Listening port', type=str)
+import models
 
 
 def setup_db():
@@ -43,8 +41,8 @@ setup_db()
 
 application = Application()
 
-
 if __name__ == '__main__':
+    define('port', default='8080', help='Listening port', type=str)
     tornado.options.parse_command_line()
     port = os.getenv('PORT', options.port)
     print("Server listening on port " + str(port))

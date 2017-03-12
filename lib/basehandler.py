@@ -9,7 +9,7 @@ from tornado.platform.asyncio import to_tornado_future
 import config
 from lib import jsonrpc, utils
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
-from models import models
+import models
 
 
 def tasklet(method):

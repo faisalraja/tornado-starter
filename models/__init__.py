@@ -1,1 +1,2 @@
-__author__ = 'faisal'
+from .user import User
+from .post import Post

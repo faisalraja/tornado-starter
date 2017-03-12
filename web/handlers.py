@@ -8,7 +8,7 @@ from lib.auth.adapter import TornadoWebAdapter
 from tornado import gen
 import config
 from lib.basehandler import BaseHandler
-from models import models
+import models
 
 
 class HomeHandler(BaseHandler):

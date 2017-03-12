@@ -55,8 +55,3 @@ class User(BaseModel):
     def get_password(cls, password):
 
         return bcrypt_sha256.using(rounds=config.password_iterations).hash(password)
-
-
-class Post(BaseModel):
-    title = CharField()
-    content = TextField()
