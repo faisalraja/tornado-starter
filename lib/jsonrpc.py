@@ -4,6 +4,7 @@ import traceback
 import uuid
 import sys
 import tornado
+from tornado import gen
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 
 __author__ = 'faisal'
@@ -11,14 +12,11 @@ __author__ = 'faisal'
 """
 Server Usage:
 server = Server(YourClass())
-server.handler(webapp2.request, webapp2.response)
+server.handle(request)
 
 Client Usage: (Passing headers help with authorization cookies)
-client = Client('http://path/to/rpc', webapp2.request.headers)
+client = Client('http://path/to/rpc', headers)
 client.method_name(args)
-
-ClientAsync is same as client except it returns a future so you need to call get_result() for it.
-Also uses ndb context so it will be auto batched with other ndb async calls.
 """
 
 VERSION = '2.0'
@@ -35,6 +33,7 @@ class ServerException(Exception):
     """
     code -32000 to -32099 for custom server errors
     """
+
     def __init__(self, data=None, message='Server error', code=-32000):
         Exception.__init__(self, message)
         self.data = data
@@ -55,7 +54,6 @@ class Server(object):
         return self.result({'jsonrpc': VERSION, 'error': error_value, 'id': id})
 
     def result(self, result):
-
         return result
 
     async def handle(self, request, data=None):
@@ -66,10 +64,7 @@ class Server(object):
                 return self.error(None, -32700)
         # batch calls
         if isinstance(data, list):
-            # todo implement async batch
-            batch_result = []
-            for d in data:
-                batch_result.append(await self.handle(None, d))
+            batch_result = await gen.multi_future([self.handle(None, d) for d in data])
             return self.result(batch_result)
 
         if data.get('jsonrpc') != '2.0':
@@ -104,10 +99,10 @@ class Server(object):
         named_params = not isinstance(params, list)
         invalid_params = False
 
+        clean_params = {}
         if arg_len and params is None:
             invalid_params = True
         elif named_params:
-            clean_params = {}
             if arg_len:
                 req_len = arg_len - def_len
                 for i, arg in enumerate(method_info.parameters):
@@ -146,38 +141,28 @@ class Server(object):
 
 
 class Client(object):
-
     def __init__(self, uri, headers=None):
-        if headers is None:
-            headers = {}
         self.uri = uri
-        self.headers = headers
+        self.headers = headers or {}
 
-    def __getattr__(self, key):
-        try:
-            return object.__getattr__(self, key)
-        except AttributeError:
-            return self.dispatch(key)
+    def __getattr__(self, method):
 
-    def default(self, *args, **kw):
-        if len(kw) > 0:
-            self.params = kw
-        elif len(args) > 0:
-            self.params = args
-        else:
-            self.params = {}
+        def default(*args, **kwargs):
+            params = {}
+            if len(kwargs) > 0:
+                params = kwargs
+            elif len(args) > 0:
+                params = args
 
-        return self.request()
+            return self.request(method, params)
 
-    def dispatch(self, key):
-        self.method = key
-        return self.default
+        return default
 
-    async def request(self):
+    async def request(self, method, params):
         parameters = {
             'id': str(uuid.uuid4()),
-            'method': self.method,
-            'params': self.params,
+            'method': method,
+            'params': params,
             'jsonrpc': VERSION
         }
         data = json.dumps(parameters)
@@ -192,11 +177,12 @@ class Client(object):
         try:
             result = tornado.escape.json_decode(response.body)
         except:
-            return None
+            raise ServerException(ERROR_MESSAGE[-32700], code=-32700)
 
         if 'error' in result:
-            raise Exception('%s Code: %s' % (result['error']['message'], result['error']['code']))
-        if parameters['id'] == result['id'] and 'result' in result:
+            raise ServerException(
+                message='{} Code: {}'.format(result['error']['message'], result['error']['code']),
+                code=result['error']['code']
+            )
+        elif parameters['id'] == result['id'] and 'result' in result:
             return result['result']
-        else:
-            return None

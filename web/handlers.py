@@ -1,9 +1,5 @@
 import logging
-import mimetypes
-import os
 import time
-import uuid
-from authomatic import Authomatic
 from lib.auth.adapter import TornadoWebAdapter
 from tornado import gen
 import config
@@ -12,7 +8,6 @@ import models
 
 
 class HomeHandler(BaseHandler):
-
     async def get(self):
         params = {}
         if self.get_argument('test', None):
@@ -21,7 +16,6 @@ class HomeHandler(BaseHandler):
 
 
 class LoginHandler(BaseHandler):
-
     @classmethod
     def login_or_create(cls):
         user = models.User.get_user_by_login('A@A.A', '1')
@@ -34,7 +28,6 @@ class LoginHandler(BaseHandler):
 
     @gen.coroutine
     def get(self):
-
         user = yield self.run_async(self.login_or_create)
         self.set_secure_cookie('user_id', str(user.id))
 
@@ -42,7 +35,6 @@ class LoginHandler(BaseHandler):
 
 
 class LoginProviderHandler(BaseHandler):
-
     def on_login(self, result):
         if result:
             if result.error:
@@ -70,9 +62,7 @@ class LoginProviderHandler(BaseHandler):
 
 
 class LogoutHandler(BaseHandler):
-
     def get(self):
-
         self.clear_cookie('user_id')
 
         return self.redirect(self.request.headers.get('Referer', '/'))
