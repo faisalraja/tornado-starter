@@ -17,6 +17,23 @@ server.handle(request)
 Client Usage: (Passing headers help with authorization cookies)
 client = Client('http://path/to/rpc', headers)
 client.method_name(args)
+
+Batch usage:
+with client:
+    m1 = await client.method_1(args)
+    m2 = await client.method_2(args)
+    
+with client:
+    m3 = await client.method_1(diff_args)
+    m4 = await client.method_2(diff_args)
+
+Then call to get the result
+print(await m1())
+print(await m2())
+
+If you are doing large number of batches, and you are done with the results call clear_batch_result()
+to free up memory
+
 """
 
 VERSION = '2.0'
@@ -144,6 +161,36 @@ class Client(object):
     def __init__(self, uri, headers=None):
         self.uri = uri
         self.headers = headers or {}
+        self.batch = None
+        self.batch_results = {}
+        self.pending_batch = []
+
+    def __enter__(self):
+        self.batch = []
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        batch = self.batch
+        self.batch = None
+        self.pending_batch.append(self.request(None, None, batch=batch))
+
+    def clear_batch_results(self):
+        self.batch_results.clear()
+
+    def set_batch_results(self, result):
+        for r in result:
+            if r.get('id'):
+                self.batch_results[r['id']] = r.get('result')
+
+    def batch_result(self, result_id):
+
+        async def result():
+            if self.pending_batch:
+                await gen.multi_future(self.pending_batch)
+                self.pending_batch = []
+
+            return self.batch_results.get(result_id)
+
+        return result
 
     def __getattr__(self, method):
 
@@ -158,13 +205,17 @@ class Client(object):
 
         return default
 
-    async def request(self, method, params):
-        parameters = {
+    async def request(self, method, params, batch=None):
+        parameters = batch or {
             'id': str(uuid.uuid4()),
             'method': method,
             'params': params,
             'jsonrpc': VERSION
         }
+        if self.batch is not None and batch is None:
+            self.batch.append(parameters)
+            return self.batch_result(parameters['id'])
+
         data = json.dumps(parameters)
 
         headers = {
@@ -179,7 +230,9 @@ class Client(object):
         except:
             raise ServerException(ERROR_MESSAGE[-32700], code=-32700)
 
-        if 'error' in result:
+        if batch is not None:
+            self.set_batch_results(result)
+        elif 'error' in result:
             raise ServerException(
                 message='{} Code: {}'.format(result['error']['message'], result['error']['code']),
                 code=result['error']['code']
